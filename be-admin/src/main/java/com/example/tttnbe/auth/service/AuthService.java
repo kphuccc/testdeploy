@@ -5,11 +5,12 @@ import com.example.tttnbe.auth.dto.LoginResponse;
 import com.example.tttnbe.auth.dto.LogoutRequest;
 import com.example.tttnbe.auth.entity.RefreshToken;
 import com.example.tttnbe.auth.entity.User;
-import com.example.tttnbe.exception.CustomException;
+import com.example.tttnbe.common.exception.CustomException;
 import com.example.tttnbe.auth.repository.RefreshTokenRepository;
 import com.example.tttnbe.auth.repository.UserRepository;
 import com.example.tttnbe.auth.security.JwtTokenProvider;
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -38,21 +39,21 @@ public class AuthService {
 
         //tim user theo email
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new CustomException("Sai email hoặc mật khẩu"));
+                .orElseThrow(() -> new CustomException(HttpStatus.UNAUTHORIZED.value(), "Sai email hoặc mật khẩu"));
 
         //kiem tra role
         if (!"ADMIN".equals(user.getRole())) {
-            throw new CustomException("Bạn không có quyền truy cập hệ thống này!");
+            throw new CustomException(HttpStatus.FORBIDDEN.value(), "Bạn không có quyền truy cập hệ thống này!");
         }
 
         if (!"ACTIVE".equals(user.getStatus())) {
-            throw new CustomException("Tài khoản Admin đã bị khóa hoặc chưa kích hoạt!");
+            throw new CustomException(HttpStatus.FORBIDDEN.value(), "Tài khoản Admin đã bị khóa hoặc chưa kích hoạt!");
         }
 
         //kiem tra mat khau
         //ham matches() cua BCrypt se tu dong so sanh theo ma hash
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new CustomException("Sai email hoặc mật khẩu");
+            throw new CustomException(HttpStatus.UNAUTHORIZED.value(), "Sai email hoặc mật khẩu");
         }
 
         //tao token neu moi thu hop le
@@ -92,6 +93,6 @@ public class AuthService {
             }
         }
 
-        throw new CustomException("Token không hợp lệ hoặc đã bị đăng xuất!");
+        throw new CustomException(HttpStatus.UNAUTHORIZED.value(), "Token không hợp lệ hoặc đã bị đăng xuất!");
     }
 }

@@ -1,31 +1,43 @@
 package com.example.tttnbe.auth.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "user_id", updatable = false, nullable = false)
     private UUID userId;
 
     @Column(name = "name", nullable = false, length = 150)
     private String name;
 
-    @Column(name = "email", nullable = false, unique = true, length = 255)
+    @Column(name = "email", nullable = false, length = 255, unique = true)
     private String email;
 
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
+
+    @Column(name = "avatar_url", length = 500)
+    private String avatarURL;
+
+    @Column(name = "phone", length = 20)
+    private String phone;
+
+    @Column(name = "wallet_address", length = 100)
+    private String walletAddress;
 
     @Column(name = "role", nullable = false, length = 20)
     private String role;    //ADMIN, USER, ORGANIZER
@@ -33,69 +45,16 @@ public class User {
     @Column(name = "status", nullable = false, length = 20)
     private String status;  //ACTIVE, LOCKED, UNVERIFIED
 
-    public User() {
-        this.userId = userId;
-        this.name = name;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.role = role;
-        this.status = status;
-    }
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
 
-    public User(UUID userId, String name, String email, String passwordHash, String role, String status) {
-        this.userId = userId;
-        this.name = name;
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.role = role;
-        this.status = status;
-    }
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
-    public UUID getUserId() {
-        return userId;
-    }
-
-    public void setUserId(UUID userId) {
-        this.userId = userId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
+    @Column(name = "updated_at", nullable = false)
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

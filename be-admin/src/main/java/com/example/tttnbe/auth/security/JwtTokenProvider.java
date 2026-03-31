@@ -1,5 +1,7 @@
 package com.example.tttnbe.auth.security;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
@@ -32,5 +34,28 @@ public class JwtTokenProvider {
                 .expiration(expiryDate)     //thoi diem het han
                 .signWith(getSigningKey())  //ky bang chia khoa bi mat
                 .compact();                 //dong goi thanh chuoi String
+    }
+
+    // 1. Hàm kiểm tra token có hợp lệ không
+    public boolean validateToken(String authToken) {
+        try {
+            Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(authToken);
+            return true;
+        } catch (JwtException | IllegalArgumentException ex) {
+            System.out.println("Token không hợp lệ hoặc đã hết hạn: " + ex.getMessage());
+            return false;
+        }
+    }
+
+    // 2. Hàm lấy User ID từ token
+    public String getUserIdFromJWT(String token) {
+        Claims claims = Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token).getPayload();
+        return claims.getSubject();
+    }
+
+    // 3. Hàm lấy Role từ token
+    public String getRoleFromJWT(String token) {
+        Claims claims = Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token).getPayload();
+        return claims.get("role", String.class);
     }
 }
