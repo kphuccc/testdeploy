@@ -12,29 +12,40 @@ const ConcertManagement = () => {
   const [loading, setLoading] = useState(false);
   const [modalState, setModalState] = useState({ open: false, id: null });
   const [form] = Form.useForm();
-
+const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
   // --- LẤY DỮ LIỆU TỪ API ---
-  const fetchData = async () => {
+  const fetchData = async (page = 1, pageSize = 10) => {
     setLoading(true);
     try {
-      // Gọi song song API Concerts và API Venues
+      // Truyền tham số page và size lên BE
       const [resConcerts, resVenues] = await Promise.all([
-        API.get('/admin/concerts'),
+        API.get(`/admin/concerts?page=${page - 1}&size=${pageSize}`),
         API.get('/admin/venues')
       ]);
 
-      // Bóc tách dữ liệu concert từ mảng content
-      setConcerts(resConcerts.data?.content || resConcerts.data || []);
-      // Lưu danh sách địa điểm cho Combobox
+      const concertData = resConcerts.data;
+      setConcerts(concertData.content || concertData || []);
       setVenues(resVenues.data || []);
+
+      // Cập nhật lại tổng số record để Ant Design vẽ số trang
+      if (concertData.totalElements !== undefined) {
+        setPagination({
+          current: page,
+          pageSize: pageSize,
+          total: concertData.totalElements // Tổng số record BE trả về
+        });
+      }
     } catch (error) {
       message.error('Lỗi tải dữ liệu hệ thống!');
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => { fetchData(); }, []);
+const handleTableChange = (newPagination) => {
+  fetchData(newPagination.current, newPagination.pageSize);
+};
+  // Cập nhật useEffect gọi fetchData không tham số (mặc định lấy trang 1)
+  useEffect(() => { fetchData(1, pagination.pageSize); }, []);
 
   // --- XỬ LÝ XÓA (Dùng concertId từ Swagger) ---
   const handleDelete = async (id) => {
@@ -166,7 +177,16 @@ const ConcertManagement = () => {
         <Button type="primary" icon={<PlusOutlined />} onClick={() => openModal()}>Tạo Concert</Button>
       </div>
       
-      <Table columns={columns} dataSource={concerts} rowKey="concertId" loading={loading} bordered />
+      <Table 
+  columns={columns} 
+  dataSource={concerts} 
+  rowKey="concertId" 
+  loading={loading} 
+  bordered 
+  // Gắn pagination và sự kiện onChange vào đây:
+  pagination={pagination}
+  onChange={handleTableChange}
+/>
 
       <Modal 
         title={modalState.id ? "Cập nhật Concert" : "Thiết lập Concert Mới"} 
