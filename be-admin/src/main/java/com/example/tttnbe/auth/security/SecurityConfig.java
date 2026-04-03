@@ -27,27 +27,27 @@ public class SecurityConfig {
     }
 
     @Bean
-public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http
-        // Sửa lỗi 1: Định nghĩa CORS trực tiếp trong Security
-        .cors(cors -> cors.configurationSource(request -> {
-            CorsConfiguration cfg = new CorsConfiguration();
-            cfg.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174", "https://admin-concert-blockchain-stu-22.vercel.app"));
-            cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-            cfg.setAllowedHeaders(Arrays.asList("*"));
-            cfg.setAllowCredentials(true);
-            return cfg;
-        }))
-        .csrf(AbstractHttpConfigurer::disable)
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/auth/**", "/error", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-            // Sửa lỗi 3: Dùng hasAuthority để khớp với chữ ADMIN trong Token
-            .requestMatchers("/admin/**").hasAnyAuthority("ADMIN", "ROLE_ADMIN")
-            .anyRequest().authenticated()
-        );
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                // Sửa lỗi 1: Định nghĩa CORS trực tiếp trong Security
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration cfg = new CorsConfiguration();
+                    cfg.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174", "https://admin-concert-blockchain-stu-22.vercel.app"));
+                    cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    cfg.setAllowedHeaders(Arrays.asList("*"));
+                    cfg.setAllowCredentials(true);
+                    return cfg;
+                }))
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/**", "/error", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        // Sửa lỗi 3: Dùng hasAuthority để khớp với chữ ADMIN trong Token
+                        .requestMatchers("/admin/**").hasAnyAuthority("ADMIN", "ROLE_ADMIN")
+                        .anyRequest().authenticated()
+                );
 
-    http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-    return http.build();
-}
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
 }
